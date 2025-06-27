@@ -7,10 +7,11 @@ if __name__ == "__main__":
     )
 
     dataset_path = "dataset/iris.data"
+    test_dataset_path = "dataset/test_set.data"
     num_features = 4
     num_hidden = 32
     num_outputs = 3
-    epoch = 100000
+    epoch = 1000
     learning_rate = 0.001
     error_threshold = 1e-5
     momentum = 0.9
@@ -24,6 +25,7 @@ if __name__ == "__main__":
         learning_rate,
         error_threshold,
         momentum,
+        test_dataset_path,
     )
 
     nn.train()

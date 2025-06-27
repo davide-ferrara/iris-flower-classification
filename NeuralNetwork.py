@@ -14,6 +14,7 @@ class NeuralNetwork:
         learning_rate,
         error_threshold,
         momentum,
+        test_dataset_path=None,
     ):
         self.num_features = num_features
         self.num_hidden = num_hidden
@@ -23,9 +24,16 @@ class NeuralNetwork:
         self.error_threshold = error_threshold
         self.momentum = momentum
         self.train_loss = []
+        self.test_loss = []
 
         self.X, self.Y = self.parse_dataset(dataset_path, self.num_features)
-        self.targets = self.one_hot()
+        self.targets = self.one_hot(self.Y)
+
+        if test_dataset_path is not None:
+            self.X_test, self.Y_test = self.parse_dataset(
+                test_dataset_path, self.num_features
+            )
+            self.targets_test = self.one_hot(self.Y_test)
 
         # Pesi da input layer verso hidden layer
         self.weights_ih = self.init_weights(self.num_hidden, self.num_features)
@@ -47,10 +55,10 @@ class NeuralNetwork:
         return X, Y
 
     # https://wandb.ai/mostafaibrahim17/ml-articles/reports/One-Hot-Encoding-Creating-a-NumPy-Array-Using-Weights-Biases--Vmlldzo2MzQzNTQ5
-    def one_hot(self):
-        classes, inverse = np.unique(self.Y, return_inverse=True)
-        one_hot = np.zeros((self.Y.shape[0], classes.size))
-        one_hot[np.arange(self.Y.shape[0]), inverse] = 1
+    def one_hot(self, Y):
+        classes, inverse = np.unique(Y, return_inverse=True)
+        one_hot = np.zeros((Y.shape[0], classes.size))
+        one_hot[np.arange(Y.shape[0]), inverse] = 1
         return one_hot
 
     def init_weights(self, row, col):
@@ -74,10 +82,19 @@ class NeuralNetwork:
         for epoch in range(self.epochs):
             a = self.feed_forward(self.X.T)
             y = self.targets.T
+
+            self.backprop(a, y)
+
+            # Errore con dati di training
             error = self.mean_squared_error(a, y)
             self.train_loss.append(error)
 
-            self.backprop(a, y)
+            a_test = self.feed_forward(self.X_test.T)
+            y_test = self.targets_test.T
+
+            # Errore con dati di test
+            error_test = self.mean_squared_error(a_test, y_test)
+            self.test_loss.append(error_test)
 
             if "-v" in args:
                 print(f"Epoch {epoch + 1}, error: {error}")
@@ -169,6 +186,9 @@ class NeuralNetwork:
 
     def get_train_loss(self):
         return self.train_loss
+
+    def get_test_loss(self):
+        return self.test_loss
 
     @staticmethod
     def load(model_path):
