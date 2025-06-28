@@ -9,9 +9,9 @@ if __name__ == "__main__":
     dataset_path = "dataset/iris.data"
     test_dataset_path = "dataset/test_set.data"
     num_features = 4
-    num_hidden = 32
+    num_hidden = 16
     num_outputs = 3
-    epoch = 1000
+    epoch = 10000
     learning_rate = 0.001
     error_threshold = 1e-5
     momentum = 0.9
