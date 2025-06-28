@@ -53,10 +53,8 @@ def confidence_candel_plot():
         bar.set_linewidth(0.8)
 
     plt.tight_layout()
-
+    plt.savefig("confidence_candel_plot.jpeg")
     plt.show()
-
-    plt.savefig("confidence_candel_plot.jpeg", dpi=300, bbox_inches="tight")
 
 
 dataset_path = "dataset/test_set.data"
