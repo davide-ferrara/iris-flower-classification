@@ -53,7 +53,7 @@ def confidence_candel_plot():
         bar.set_linewidth(0.8)
 
     plt.tight_layout()
-    plt.savefig("confidence_candel_plot.jpeg")
+    plt.savefig("confidences_candel_plot.jpeg")
     plt.show()
 
 
