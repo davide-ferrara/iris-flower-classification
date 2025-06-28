@@ -11,8 +11,8 @@ if __name__ == "__main__":
     num_features = 4
     num_hidden = 16
     num_outputs = 3
-    epoch = 10000
-    learning_rate = 0.001
+    epoch = 2000
+    learning_rate = 0.0001
     error_threshold = 1e-5
     momentum = 0.9
 

@@ -25,13 +25,14 @@ class NeuralNetwork:
         self.momentum = momentum
         self.train_loss = []
         self.test_loss = []
+        self.test_dataset_path = test_dataset_path
 
         self.X, self.Y = self.parse_dataset(dataset_path, self.num_features)
         self.targets = self.one_hot(self.Y)
 
-        if test_dataset_path is not None:
+        if self.test_dataset_path is not None:
             self.X_test, self.Y_test = self.parse_dataset(
-                test_dataset_path, self.num_features
+                self.test_dataset_path, self.num_features
             )
             self.targets_test = self.one_hot(self.Y_test)
 
@@ -71,10 +72,10 @@ class NeuralNetwork:
         # NOTE: Il prodotto matriciale np.dot(A, B) richiede che il numero di colonne di A corrisponda al numero di righe di B.
         # Per questo x è trasposta!
         self.hidden = np.dot(self.weights_ih, input) + self.bias_h
-        self.hidden = self.sigmoid(self.hidden)
+        self.hidden = self.relu(self.hidden)
 
         self.outputs = np.dot(self.weights_ho, self.hidden) + self.bias_o
-        self.outputs = self.sigmoid(self.outputs)
+        self.outputs = self.softmax(self.outputs)
 
         return self.outputs
 
@@ -89,12 +90,13 @@ class NeuralNetwork:
             error = self.mean_squared_error(a, y)
             self.train_loss.append(error)
 
-            a_test = self.feed_forward(self.X_test.T)
-            y_test = self.targets_test.T
+            if self.test_dataset_path is not None:
+                a_test = self.feed_forward(self.X_test.T)
+                y_test = self.targets_test.T
 
-            # Errore con dati di test
-            error_test = self.mean_squared_error(a_test, y_test)
-            self.test_loss.append(error_test)
+                # Errore con dati di test
+                error_test = self.mean_squared_error(a_test, y_test)
+                self.test_loss.append(error_test)
 
             if "-v" in args:
                 print(f"Epoch {epoch + 1}, error: {error}")
@@ -115,13 +117,13 @@ class NeuralNetwork:
 
     # Il Momentum aiuta a velocizzare la discesa del gradiente e a evitare minimi locali.
     def backprop(self, a, y):
-        # 1. Calcola errore output
+        # Calcolo errore output
         error_output = a - y
 
-        # 2. Delta output
-        delta_output = error_output * (a * (1 - a))
+        # Delta output
+        delta_output = error_output
 
-        # 3. Aggiorna pesi e bias output layer con momentum
+        # Aggiorno pesi e bias output layer con momentum
         grad_w_ho = np.dot(delta_output, self.hidden.T)
         grad_b_o = np.sum(delta_output, axis=1, keepdims=True)
 
@@ -131,11 +133,11 @@ class NeuralNetwork:
         self.weights_ho += self.vel_w_ho
         self.bias_o += self.vel_b_o
 
-        # 4. Propaga errore a hidden layer
+        # Propago errore a hidden layer
         error_hidden = np.dot(self.weights_ho.T, delta_output)
-        delta_hidden = error_hidden * (self.hidden * (1 - self.hidden))
+        delta_hidden = error_hidden * self.relu(self.hidden, True)  # Derivata
 
-        # 5. Aggiorna pesi e bias hidden layer con momentum
+        # Aggiorno pesi e bias hidden layer con momentum
         grad_w_ih = np.dot(delta_hidden, self.X)
         grad_b_h = np.sum(delta_hidden, axis=1, keepdims=True)
 
@@ -157,6 +159,12 @@ class NeuralNetwork:
         return np.mean(np.square(a - y))
 
     @staticmethod
+    def softmax(x):
+        x = x - np.max(x, axis=0, keepdims=True)
+        e_x = np.exp(x)
+        return e_x / np.sum(e_x, axis=0, keepdims=True)
+
+    @staticmethod
     def sigmoid(x, derivative=False):
         s = 1 / (1 + np.exp(-x))
         if derivative:
@@ -176,6 +184,12 @@ class NeuralNetwork:
             return 1 - np.square(t)
         return t
 
+    @staticmethod
+    def load(model_path):
+        with open(model_path, "rb") as f:
+            nn = pickle.load(f)
+        return nn
+
     def save(self, model_name="model.pkl"):
         with open(model_name, "wb") as f:
             print(f"Model as been saved as: {model_name}!")
@@ -189,9 +203,3 @@ class NeuralNetwork:
 
     def get_test_loss(self):
         return self.test_loss
-
-    @staticmethod
-    def load(model_path):
-        with open(model_path, "rb") as f:
-            nn = pickle.load(f)
-        return nn
