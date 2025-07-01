@@ -9,7 +9,7 @@ if __name__ == "__main__":
     dataset_path = "dataset/iris.data"
     test_dataset_path = "dataset/test_set.data"
     num_features = 4
-    num_hidden = 16
+    num_hidden = 8
     num_outputs = 3
     epoch = 2000
     learning_rate = 0.0001

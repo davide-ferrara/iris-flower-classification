@@ -35,6 +35,7 @@ class TestPrime(unittest.TestCase):
         for idx, x in enumerate(X):
             prob = self.nn.predict([x])
             prob = prob.flatten()
+            print(f"Array of probs: {prob}")
 
             pred = np.argmax(prob)
             confidence = np.max(prob) * 100
